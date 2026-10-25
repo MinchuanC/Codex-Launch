@@ -1,0 +1,6 @@
+.build/
+dist/
+.superpowers/
+.omx/
+.DS_Store
+.playwright-mcp/

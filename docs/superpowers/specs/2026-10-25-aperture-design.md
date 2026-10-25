@@ -1,6 +1,6 @@
 # Aperture — Codex companion motion design
 
-Date: 2026-10-25, Asia/Brunei. Status: proposed design; planning only, no product implemented.
+Date: 2026-10-25, Asia/Brunei. Status: implementation authorized by user on 2026-10-25; fullscreen effects explicitly permitted.
 
 ## Intent and authority
 
@@ -47,13 +47,13 @@ The composition is deliberately sparse: one dominant object, an offset small `AP
 | Geometry | Six repeated vane polygons; 2px local bevels, 10px surface corners |
 | Sizes | 14px control text, 12px supporting labels; clickable targets at least 44 × 44pt |
 
-The startup stage is a 720 × 440pt opaque surface, centered on the display containing the pointer and clamped to that display's usable frame. Its silhouette and margins are intentional, so transparent web rendering is not required for the core design. On smaller displays, shrink the stage to fit with 20pt margins and preserve the mark's aspect ratio.
+The startup stage fills the display containing the pointer, using an opaque near-black surface. Its scale comes from an expanding white slit, a single traveling accent rule, and large precise assembly geometry. Preserve generous negative space, readable system controls, and Escape/Skip. It is a borderless overlay, not a macOS fullscreen Space. The tab and deck remain small bounded panels. Transparency is not required.
 
 ## Experience and motion score
 
 ### 1. Launch ritual
 
-Opening the companion explicitly requests launch/activation of the selected target app. Start that request immediately with NSWorkspace activation disabled, concurrently with the artwork; never hold the launch request until the animation finishes. On successful native open completion, activate the target only if the launch interaction still owns focus intent: no unrelated app has activated since the explicit launch, the session remains active, and the current foreground app is the captured initial app, the companion, or the target. An unrelated activation permanently revokes that attempt’s focus intent. Activation never comes from an animation callback. Verify this guard with a delayed opener during the native proof.
+Opening the companion explicitly requests launch/activation of the selected target app. Start that request immediately with NSWorkspace activation disabled, concurrently with the artwork; never hold the launch request until the animation finishes. On successful native open completion, retain the result until native artwork dismissal when needed, then activate the target only if the launch interaction still owns focus intent: no unrelated app has activated since the explicit launch, the session remains active, and the current foreground app is the captured initial app, the companion, or the target. An unrelated activation permanently revokes that attempt’s focus intent. The native host validates focus intent on handoff; a renderer completion alone never authorizes activation. Verify this guard with a delayed opener during the native proof.
 
 | Time | Visual beat | Purpose |
 | --- | --- | --- |
@@ -63,7 +63,7 @@ Opening the companion explicitly requests launch/activation of the selected targ
 | 1,180–1,560ms | Mechanism closes into its compact mark | Connect the opening to daily controls |
 | 1,560–1,800ms | Stage fades; the small tab appears separately at the screen edge | Hand off cleanly to the app |
 
-This is a visual relationship, not a claim that pixels fly into an actual Codex window. Do not move or resize the target app. Do not use fullscreen dimming, desktop capture, window snapshots, or global cursor effects.
+This is a visual relationship, not a claim that pixels fly into an actual Codex window. Do not move or resize the target app. Fullscreen artwork is allowed by the latest user instruction. Do not use desktop capture, window snapshots, or global cursor effects.
 
 - Full sequence: at most 1,800ms after the web renderer is ready. Native watchdog dismisses a stalled stage at 2,500ms after presentation.
 - Target already running: 450ms compact opening. Reopening while a launch is pending coalesces into the same launch request; no stacked stages.
@@ -71,7 +71,7 @@ This is a visual relationship, not a claim that pixels fly into an actual Codex 
 - Show `Opening app…` while the request is pending and `App opened` only after the native open completion succeeds. Never say `Model ready`, `Thinking`, or `Task complete`.
 - Renderer failure must not prevent the native launch request. If opening fails, dismiss artwork and show a native error with Retry and Choose App; no endless loading scene.
 - If the app is still opening when the ritual ends, remove the stage anyway. Expose a pending status through the menu; show a timeout message after 10 seconds without claiming the process is unusable. Allow retry; ignore old-generation callbacks.
-- A user clicking another app while opening wins: finish the artwork without subsequently forcing the target to the foreground. Only the guarded native launch completion may activate the app, in service of the initial user request; an animation callback never may.
+- A user clicking another app while opening wins: finish the artwork without subsequently forcing the target to the foreground. Only the native host’s guarded launch/handoff may activate the app, in service of the initial user request; renderer messages alone never grant focus authority.
 
 ### 2. Companion tab
 
@@ -116,7 +116,7 @@ Target selection: offer `/Applications/ChatGPT.app` as a detected candidate, sho
 
 Renderer entry points: `window.Aperture.present({surface, reducedMotion, quiet, compact})`, `window.Aperture.dismiss()`, `window.Aperture.dispose()`, and `window.Aperture.setLaunchStatus(status)`. Surface is `startup | tab | deck`; status is `opening | opened | failed | timedOut`. Calls replace existing local animation and settle predictably.
 
-Renderer messages to `window.webkit.messageHandlers.aperture`: exactly `{action}` where action is `ready | skip | openApp | replay | toggleQuiet | hide | closeDeck | openDeck`. Accept only main-frame messages originating from the currently loaded bundled page; reject extra fields and unknown actions. Never accept URLs, scripts, or shell text from the web layer. User app selection happens natively.
+Renderer messages to `window.webkit.messageHandlers.aperture`: `{action}`, except automatic completion uses `{action: "finished", token}` matching the current native presentation identity where action is `ready | skip | openApp | replay | toggleQuiet | hide | closeDeck | openDeck`. Reject stale/missing completion tokens. Accept only main-frame messages originating from the currently loaded bundled page; reject extra fields and unknown actions. Never accept URLs, scripts, or shell text from the web layer. User app selection happens natively.
 
 Load local HTML through `loadFileURL` with read access restricted to bundled web assets. Local classic scripts avoid module/file-origin surprises. Deny top-level navigation away from the bundled page, deny new windows and remote requests through a restrictive CSP; keep the WKWebView bridge limited to its known UI actions.
 
@@ -145,4 +145,4 @@ Reviewed on 2026-10-25; repositories are references, not dependencies and were n
 
 ## Remaining verification boundary
 
-A fresh same-model builder review identified cold-launch focus races, unproven lock coverage, and an inconsistent quiet-mode sentence. This revision adds guarded nonactivating launch, makes lock coverage a native gate, and consistently hides the tab in quiet mode. No launcher, panel, animation, target opening, performance measurement, or user-facing installation has been implemented or tested. The design intentionally works with opaque bounded panels; transparent web composition is an optional experiment, not a dependency or promised effect. Public API signatures must be compiled against the installed macOS SDK during implementation. No ADR is warranted yet: these choices remain inexpensive to revise before the native proof.
+A fresh same-model builder review identified cold-launch focus races, unproven lock coverage, and an inconsistent quiet-mode sentence. This revision adds guarded nonactivating launch, makes lock coverage a native gate, and consistently hides the tab in quiet mode. This was the boundary at design time. Implementation and current evidence are recorded in [verification](../../verification/2026-10-25-aperture.md). The design intentionally works with opaque bounded panels; transparent web composition is an optional experiment, not a dependency or promised effect. Public API signatures must be compiled against the installed macOS SDK during implementation. No ADR is warranted yet: these choices remain inexpensive to revise before the native proof.

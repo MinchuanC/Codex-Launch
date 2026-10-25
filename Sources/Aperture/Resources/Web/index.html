@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; font-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Aperture</title><link rel="stylesheet" href="styles.css">
+<script defer src="gsap.min.js"></script><script defer src="motion.js"></script>
+</head>
+<body>
+<section id="startup" data-surface="startup" hidden aria-label="Aperture opening">
+  <header class="stage-header"><div class="identity"><span class="identity-mark">⌜</span><span>CODEX<span class="sub-label">PERSONAL WORKSPACE</span></span></div><div class="serial">APERTURE<span class="serial-number">06 / LOCAL</span></div></header>
+  <div class="assembly-field" aria-hidden="true">
+    <div class="field-label label-top">ASSEMBLY / 06</div>
+    <svg class="assembly" viewBox="-400 -350 800 700" role="presentation">
+      <defs><linearGradient id="facet" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#555b50"/><stop offset="0.48" stop-color="#33382f"/><stop offset="1" stop-color="#20251f"/></linearGradient></defs>
+      <g class="registration"><path d="M-330,-230v-20h20 M310,-250h20v20 M330,230v20h-20 M-310,250h-20v-20"/><path class="axis" d="M-350,0h18 M332,0h18 M0,-280v18 M0,262v18"/></g>
+      <g class="core"><path class="core-outline" d="M0,-76 66,-38 66,38 0,76 -66,38 -66,-38Z"/></g>
+      <g class="rotor">
+        <g transform="rotate(0)"><g class="vane"><path class="plate" d="M38,-48 188,-135 262,-92 112,-5Z"/><path class="plate-edge" d="M38,-48 188,-135 262,-92"/><text x="180" y="-93">01</text></g></g>
+        <g transform="rotate(60)"><g class="vane"><path class="plate" d="M38,-48 188,-135 262,-92 112,-5Z"/><path class="plate-edge" d="M38,-48 188,-135 262,-92"/><text x="180" y="-93">02</text></g></g>
+        <g transform="rotate(120)"><g class="vane"><path class="plate" d="M38,-48 188,-135 262,-92 112,-5Z"/><path class="plate-edge" d="M38,-48 188,-135 262,-92"/><text x="180" y="-93">03</text></g></g>
+        <g transform="rotate(180)"><g class="vane"><path class="plate" d="M38,-48 188,-135 262,-92 112,-5Z"/><path class="plate-edge" d="M38,-48 188,-135 262,-92"/><text x="180" y="-93">04</text></g></g>
+        <g transform="rotate(240)"><g class="vane"><path class="plate" d="M38,-48 188,-135 262,-92 112,-5Z"/><path class="plate-edge" d="M38,-48 188,-135 262,-92"/><text x="180" y="-93">05</text></g></g>
+        <g transform="rotate(300)"><g class="vane"><path class="plate" d="M38,-48 188,-135 262,-92 112,-5Z"/><path class="plate-edge" d="M38,-48 188,-135 262,-92"/><text x="180" y="-93">06</text></g></g>
+      </g>
+    </svg>
+    <div class="optical-core"><i class="core-cut"></i></div>
+    <div class="field-label label-bottom"><span class="field-tick"></span>GEOMETRY / RESOLVED</div>
+  </div>
+  <div class="cut-rule" aria-hidden="true"></div>
+  <footer class="stage-footer"><div class="launch-copy"><span class="status-dot"></span><span id="launch-status" role="status">Opening app…</span><span class="companion-label">A PERSONAL LAUNCH COMPANION</span></div><button id="skip" data-action="skip">Skip opening <kbd>esc</kbd></button></footer>
+</section>
+<section id="tab" data-surface="tab" hidden aria-label="Companion tab"><button class="tab-button" data-action="openDeck" aria-label="Open Aperture controls"><svg class="mini-mark" viewBox="-32 -32 64 64" aria-hidden="true"><g class="mini-rotor"><path d="M0,-26 9,-12 24,-12 16,0 24,14 8,14 0,27 -8,14 -24,14 -16,0 -24,-12 -9,-12Z"/></g><path class="mini-slit" d="M-1,-9H1V9H-1Z"/></svg></button></section>
+<section id="deck" data-surface="deck" hidden aria-label="Aperture controls">
+  <header class="deck-header"><span class="deck-title"><i></i>APERTURE / 06</span><button class="close-button" data-action="closeDeck" aria-label="Close controls">×</button></header>
+  <div class="deck-actions"><button data-action="openApp"><span>Open workspace</span><span class="action-symbol" aria-hidden="true">↗</span></button><button data-action="replay"><span>Replay opening</span><span class="action-symbol" aria-hidden="true">↻</span></button><button data-action="toggleQuiet" aria-pressed="false"><span>Quiet mode</span><span class="quiet-indicator" aria-hidden="true"></span></button><button data-action="hide"><span>Hide companion</span><span class="action-symbol" aria-hidden="true">−</span></button></div>
+</section>
+</body></html>

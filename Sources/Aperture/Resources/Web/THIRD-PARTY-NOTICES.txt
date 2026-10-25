@@ -1,0 +1,6 @@
+GSAP 3.13.0 — GreenSock / Jack Doyle
+Copyright 2025, GreenSock. All rights reserved.
+Upstream: https://gsap.com
+License: https://gsap.com/standard-license
+Distribution: https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js
+The original copyright and license header is preserved in gsap.min.js.
