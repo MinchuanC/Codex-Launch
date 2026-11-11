@@ -5,6 +5,7 @@ if [[ -z "${DEVELOPER_DIR:-}" && -d /Applications/Xcode.app/Contents/Developer ]
   export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 fi
 shasum -a 256 -c packaging/gsap.sha256
+shasum -a 256 -c packaging/three.sha256
 xcrun swift build -c release
 bin_dir="$(xcrun swift build -c release --show-bin-path)"
 app_dir="$PWD/dist/Aperture.app"
@@ -27,7 +28,7 @@ python3 - "$app_dir/Contents/Resources/Web" <<'PY_CHECK'
 import re,sys
 from pathlib import Path
 web=Path(sys.argv[1])
-for name in ['index.html','styles.css','motion.js','gsap.min.js','THIRD-PARTY-NOTICES.txt']:
+for name in ['index.html','styles.css','motion.js','scene.js','gsap.min.js','three-bundle.min.js','THREE-LICENSE.txt','THIRD-PARTY-NOTICES.txt']:
     assert (web/name).is_file(), f'Missing bundled asset: {name}'
 html=(web/'index.html').read_text()
 for ref in re.findall(r'(?:src|href)="([^"]+)"',html):

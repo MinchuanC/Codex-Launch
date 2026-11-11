@@ -24,17 +24,28 @@ final class WebKitTests: XCTestCase {
         }
         XCTAssertTrue(loaded,"local CSP and scripts must work in WebKit")
         guard loaded else { return }
+        let sceneLoaded = try await web.evaluateJavaScript("typeof window.ApertureScene?.create === 'function'") as? Bool
+        XCTAssertEqual(sceneLoaded,true,"the local classic Three.js scene bundle must load under the packaged CSP")
         let count = try await web.evaluateJavaScript("document.querySelectorAll('.vane').length") as? Int
         XCTAssertEqual(count,6)
-        _ = try await web.evaluateJavaScript("Aperture.dispose(); Aperture.present({surface:'startup'}); gsap.globalTimeline.pause(); window.captureTimeline=Aperture.createStartupTimeline({}); captureTimeline.seek(.95); true")
+        _ = try await web.evaluateJavaScript("Aperture.dispose(); Aperture.present({surface:'startup'}); window.captureTimeline=gsap.globalTimeline.getChildren(false,false,true).find(t=>'handoff' in t.labels); captureTimeline.pause(); captureTimeline.time(2.8,false); true")
+        let renderer = try await web.evaluateJavaScript("document.querySelector('.assembly-field').dataset.renderer || ''") as? String
+        XCTAssertTrue(renderer == "webgl" || renderer == "svg","startup must render 3D or explicitly retain the SVG fallback")
+        let sceneVisible = try await web.evaluateJavaScript("document.querySelector('.assembly-field').dataset.renderer !== 'webgl' || document.querySelector('.assembly-field canvas')?.width > 0") as? Bool
+        XCTAssertEqual(sceneVisible,true,"a successful WebGL renderer must have a sized canvas")
         let image = try await web.takeSnapshot(configuration: nil)
         let bitmap = try XCTUnwrap(NSBitmapImageRep(data: try XCTUnwrap(image.tiffRepresentation)))
         try bitmap.representation(using: .png, properties: [:])?.write(to: root.appendingPathComponent("dist/aperture-native.png"))
-        _ = try await web.evaluateJavaScript("captureTimeline.kill(); Aperture.present({surface:'deck',reducedMotion:true}); true")
+        _ = try await web.evaluateJavaScript("Aperture.present({surface:'startup',reducedMotion:true}); true")
+        let reducedStatic = try await web.evaluateJavaScript("document.querySelectorAll('.assembly-field canvas').length===0 && document.querySelector('.assembly-field').dataset.renderer !== 'webgl'") as? Bool
+        XCTAssertEqual(reducedStatic,true,"reduced motion must dispose the 3D scene and keep the static fallback")
+        _ = try await web.evaluateJavaScript("Aperture.present({surface:'deck',reducedMotion:true}); true")
         let controls = try await web.evaluateJavaScript("Array.from(document.querySelectorAll('#deck [data-action]')).map(x=>x.dataset.action).join(',')") as? String
         XCTAssertEqual(controls,"closeDeck,openApp,replay,toggleQuiet,hide")
         _ = try await web.evaluateJavaScript("Aperture.dispose(); true")
         let hidden = try await web.evaluateJavaScript("Array.from(document.querySelectorAll('[data-surface]')).every(x=>x.hidden)") as? Bool
         XCTAssertEqual(hidden,true)
+        let disposed = try await web.evaluateJavaScript("document.querySelectorAll('.assembly-field canvas').length===0 && gsap.globalTimeline.getChildren(true,true,true).every(t=>!t.isActive())") as? Bool
+        XCTAssertEqual(disposed,true,"dismissing the companion must remove the scene and stop animation")
     }
 }

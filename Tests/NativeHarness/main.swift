@@ -16,15 +16,21 @@ import WebKit
                     if (try? await web.evaluateJavaScript("typeof window.Aperture === 'object'")) as? Bool == true { break }
                     try await Task.sleep(for: .milliseconds(30))
                 }
-                _ = try await web.evaluateJavaScript("window.frameIntervals=[];window.lastFrame=0;window.sampleStart=performance.now();function sample(t){if(lastFrame)frameIntervals.push(t-lastFrame);lastFrame=t;if(t-sampleStart<1600)requestAnimationFrame(sample)}requestAnimationFrame(sample);true")
-                try await Task.sleep(for: .milliseconds(800))
+                _ = try await web.evaluateJavaScript("window.frameIntervals=[];window.lastFrame=0;window.sampleStart=performance.now();window.stopSampling=false;function sample(t){if(lastFrame)frameIntervals.push(t-lastFrame);lastFrame=t;if(!stopSampling)requestAnimationFrame(sample)}requestAnimationFrame(sample);true")
+                controller.replay()
+                try await Task.sleep(for: .milliseconds(2800))
+                let renderer = try await web.evaluateJavaScript("document.querySelector('.assembly-field').dataset.renderer || 'unreported'") as? String ?? "unreported"
                 let frame = try await web.takeSnapshot(configuration: nil)
                 if let tiff = frame.tiffRepresentation, let bitmap = NSBitmapImageRep(data: tiff) {
                     try bitmap.representation(using: .png, properties: [:])?.write(to: output("aperture-live.png"))
                 }
-                try await Task.sleep(for: .milliseconds(1200))
-                let metrics = try await web.evaluateJavaScript("JSON.stringify({frames:frameIntervals.length,p95:frameIntervals.sort((a,b)=>a-b)[Math.floor(frameIntervals.length*.95)],max:frameIntervals.length?Math.max(...frameIntervals):null,visibility:document.visibilityState})") as? String ?? "{}"
+                for _ in 0..<50 {
+                    if controller.panel?.isVisible == false { break }
+                    try await Task.sleep(for: .milliseconds(100))
+                }
+                let metrics = try await web.evaluateJavaScript("stopSampling=true;JSON.stringify({frames:frameIntervals.length,p95:frameIntervals.slice().sort((a,b)=>a-b)[Math.floor(frameIntervals.length*.95)],max:frameIntervals.length?Math.max(...frameIntervals):null,sampleDuration:lastFrame-sampleStart,visibility:document.visibilityState,width:innerWidth,height:innerHeight,pixelRatio:devicePixelRatio})") as? String ?? "{}"
                 let dismissed = controller.panel?.isVisible == false
+                let sceneDisposed = try await web.evaluateJavaScript("document.querySelectorAll('.assembly-field canvas').length===0 && gsap.globalTimeline.getChildren(true,true,true).every(x=>!x.isActive())") as? Bool == true
                 controller.showDeck()
                 try await Task.sleep(for: .milliseconds(250))
                 let deckVisible = controller.panel?.isVisible == true && controller.panel?.frame.size == NSSize(width: 288, height: 224)
@@ -48,12 +54,7 @@ import WebKit
                 _ = try await web.evaluateJavaScript("document.querySelector('[data-action=hide]').click();true")
                 try await Task.sleep(for: .milliseconds(100))
                 let hideWorked = controller.panel?.isVisible == false
-                var targetOpened = false
-                if let candidate = try? TargetApp.validated(at: URL(fileURLWithPath: "/Applications/ChatGPT.app")), !NSRunningApplication.runningApplications(withBundleIdentifier: candidate.bundleIdentifier).isEmpty {
-                    let app = try await openTarget(candidate)
-                    targetOpened = app.bundleIdentifier == candidate.bundleIdentifier
-                }
-                let report: [String: Any] = ["metrics": metrics, "stageDismissed": dismissed, "deckVisible": deckVisible, "deckRendered": deckRendered, "deckHitTest": deckHitTest, "nativeHideBridge": hideWorked, "existingTargetOpened": targetOpened]
+                let report: [String: Any] = ["metrics": metrics, "startupRenderer": renderer, "stageDismissed": dismissed, "sceneDisposed": sceneDisposed, "deckVisible": deckVisible, "deckRendered": deckRendered, "deckHitTest": deckHitTest, "nativeHideBridge": hideWorked]
                 try JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted,.sortedKeys]).write(to: output("native-harness.json"))
             } catch {
                 try? Data(error.localizedDescription.utf8).write(to: output("native-harness-error.txt"))

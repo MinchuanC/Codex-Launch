@@ -4,3 +4,20 @@ Upstream: https://gsap.com
 License: https://gsap.com/standard-license
 Distribution: https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js
 The original copyright and license header is preserved in gsap.min.js.
+
+Three.js r186 (npm three@0.186.0) — MIT
+Copyright © 2010-2026 three.js authors
+Full license: THREE-LICENSE.txt (distributed alongside the runtime).
+Upstream release: https://github.com/mrdoob/three.js/tree/r186
+Vendored: Three.js WebGL runtime, RoomEnvironment, RectAreaLightUniformsLib
+and its RectAreaLightTexturesLib dependency, bundled in three-bundle.min.js.
+Build: bash scripts/build-three.sh (esbuild@0.25.0; Safari 17 classic IIFE).
+Integrity: packaging/three.sha256; bundled assets are never fetched at runtime.
+
+scene.js adapts the physical material / ACES setup and area-light setup from:
+https://github.com/mrdoob/three.js/blob/r186/examples/webgl_materials_physical_clearcoat.html
+https://github.com/mrdoob/three.js/blob/r186/examples/webgl_lights_rectarealight.html
+RoomEnvironment is actual upstream code, including its model-viewer provenance:
+https://github.com/mrdoob/three.js/blob/r186/examples/jsm/environments/RoomEnvironment.js
+No upstream demo textures, HDR photographs, fonts or models are included.
+The iris geometry and finite GSAP/camera choreography are original to Aperture.

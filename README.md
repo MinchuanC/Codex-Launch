@@ -47,3 +47,11 @@ Preferences are limited to selected application identity/path and quiet mode in 
 ## Verification boundary
 
 This is a locally built, ad-hoc-signed app for this Mac, not a notarized distributable. Multi-monitor disconnects, all lock/sleep/session combinations, third-party fullscreen apps and VoiceOver need manual acceptance on the intended setup. See [verification](docs/verification/2026-10-25-aperture.md) for measured results and untested cases. Ordinary panels use the floating window level and hide on public session/screen signals; no elevated lock-screen overlay behavior is implemented.
+
+## Cinematic 3D opening
+
+The six beveled metal vanes now assemble in depth under studio lighting, open around the core, and lock into the aperture mark as the camera pulls back. The 6.4-second opening retains the portrait at 14% and immediate Skip/Escape. A failed or lost GPU context reveals the SVG artwork; reduced motion and quiet mode never create a GPU context. The finite scene is disposed at handoff or interruption.
+
+Three.js r186 and its MIT license are bundled locally alongside GSAP; both runtime hashes are verified during every build. Ordinary builds require no npm install. To regenerate only the Three.js bundle with pinned temporary tools, run `bash scripts/build-three.sh`; that maintenance command needs network access, while the app does not. Sources and attribution are in `Sources/Aperture/Resources/Web/THIRD-PARTY-NOTICES.txt`.
+
+See [3D verification](docs/verification/2026-11-11-cinematic-iris.md) for measured results and remaining limits. The extra live preference regression can be run through Playwright's `browser_run_code` tool using `Tests/Web/lifecycle.playwright.js`, with the local server on port 4179.

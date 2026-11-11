@@ -3,12 +3,14 @@
   const $ = selector => document.querySelector(selector);
   const surfaces = [...document.querySelectorAll('[data-surface]')];
   const vanes = [...document.querySelectorAll('.vane')];
+  $('.assembly-field').dataset.renderer='svg';
   const reducedQuery = matchMedia('(prefers-reduced-motion: reduce)');
-  let context = null, startup = null, current = null, generation = 0;
+  let context = null, startup = null, scene = null, current = null, generation = 0;
   const send = (action, token) => window.webkit?.messageHandlers?.aperture?.postMessage(action==='finished' ? {action, token:token ?? current?.presentationToken} : {action});
   const reduced = options => !!options.reducedMotion || reducedQuery.matches;
   function clearMotion() {
     startup?.kill(); startup = null;
+    scene?.dispose(); scene = null;
     context?.revert(); context = null;
   }
   function createStartupTimeline(options = {}) {
@@ -57,12 +59,21 @@
     context = gsap.context(() => {
       if (options.surface==='startup') {
         startup = createStartupTimeline(options);
-        startup.eventCallback('onComplete',() => { if(token===generation) send('finished',options.presentationToken); });
+        if(!reduced(options) && !options.quiet && document.visibilityState==='visible') {
+          scene=window.ApertureScene?.create($('.assembly-field')) ?? null;
+          scene?.timeline(startup);
+          startup.eventCallback('onUpdate',()=>scene?.render());
+        }
+        startup.eventCallback('onComplete',() => {
+          if(token!==generation) return;
+          scene?.dispose(); scene=null;
+          send('finished',options.presentationToken);
+        });
         startup.play();
       } else if (!reduced(options) && !options.quiet && document.visibilityState==='visible') {
         const target=options.surface==='deck' ? '#deck' : '#tab';
         // Keep controls visible when macOS throttles a nonactivating panel's animation frames.
-        gsap.fromTo(target,{x:options.surface==='deck'?8:3},{x:0,duration:options.surface==='deck'?0.22:0.18,ease:'power3.out',clearProps:'transform'});
+        gsap.fromTo(target,{x:options.surface==='deck'?8:3,scale:options.surface==='deck'?.97:1,transformOrigin:'top right'},{x:0,scale:1,duration:options.surface==='deck'?0.22:0.18,ease:'power3.out',clearProps:'transform,transformOrigin'});
       }
     });
     if(options.surface==='deck' && !same) $('#deck button').focus({preventScroll:true});
@@ -99,11 +110,15 @@
   });
   tab.addEventListener('pointerdown',()=>localTween('.mini-mark',{scale:0.96,duration:0.09,ease:'power2.out'}));
   tab.addEventListener('pointerup',()=>localTween('.mini-mark',{scale:1,duration:0.12,ease:'power2.out'}));
+  tab.addEventListener('pointercancel',()=>localTween('.mini-mark',{scale:1,duration:0.12,ease:'power2.out'}));
   reducedQuery.addEventListener('change',()=>{
     if(!current) return;
     const options={...current};
     if(options.surface==='startup') { clearMotion(); context=gsap.context(()=>{const tl=createStartupTimeline({...options,reducedMotion:true});tl.progress(1).kill();}); send('finished'); }
     else present(options);
+  });
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='hidden') { scene?.dispose(); scene=null; }
   });
   window.Aperture={present,dismiss,dispose:dismiss,setLaunchStatus,createStartupTimeline};
   send('ready');
