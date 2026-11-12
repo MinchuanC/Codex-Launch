@@ -1,2 +1,2 @@
 # Preserve generated upstream GLSL string whitespace; review source entry and SHA instead.
-Sources/Aperture/Resources/Web/three-bundle.min.js -diff -whitespace
+packaging/three-bundle.min.js -diff -whitespace

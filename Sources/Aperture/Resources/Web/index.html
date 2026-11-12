@@ -2,18 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; font-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; connect-src 'none'; font-src 'none'; base-uri 'none'; form-action 'none'">
 <title>Aperture</title><link rel="stylesheet" href="styles.css">
-<script defer src="gsap.min.js"></script><script defer src="three-bundle.min.js"></script><script defer src="scene.js"></script><script defer src="motion.js"></script>
+<script defer src="gsap.min.js"></script><script defer src="scene.js"></script><script defer src="motion.js"></script>
 </head>
 <body>
 <section id="startup" data-surface="startup" hidden aria-label="Aperture opening">
+  <pre class="program-field" aria-hidden="true"><span>await lattice.align({ precision: 1e-6 });</span>
+<span>const field = containment.resolve(geometry);</span>
+<span>power.route(field.nodes).synchronize();</span></pre>
   <header class="stage-header"><div class="identity"><span class="identity-mark">⌜</span><span>CODEX<span class="sub-label">PERSONAL WORKSPACE</span></span></div><div class="serial">APERTURE<span class="serial-number">06 / LOCAL</span></div></header>
   <div class="assembly-field" aria-hidden="true">
     <div class="field-label label-top">ASSEMBLY / 06</div>
     <svg class="assembly" viewBox="-400 -350 800 700" role="presentation">
       <defs><linearGradient id="facet" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#555b50"/><stop offset="0.48" stop-color="#33382f"/><stop offset="1" stop-color="#20251f"/></linearGradient></defs>
       <g class="registration"><path d="M-330,-230v-20h20 M310,-250h20v20 M330,230v20h-20 M-310,250h-20v-20"/><path class="axis" d="M-350,0h18 M332,0h18 M0,-280v18 M0,262v18"/></g>
+      <circle class="charge-ring" cx="0" cy="0" r="96" aria-hidden="true"/>
       <g class="core"><path class="core-outline" d="M0,-76 66,-38 66,38 0,76 -66,38 -66,-38Z"/></g>
       <g class="rotor">
         <g transform="rotate(0)"><g class="vane"><path class="plate" d="M38,-48 188,-135 262,-92 112,-5Z"/><path class="plate-edge" d="M38,-48 188,-135 262,-92"/><text x="180" y="-93">01</text></g></g>

@@ -4,12 +4,12 @@ import XCTest
 final class CompanionTests: XCTestCase {
     func testDuplicateBeginReturnsNil() {
         var s = LaunchSession()
-        XCTAssertNotNil(s.begin(isRunning: false, foreground: "editor"))
-        XCTAssertNil(s.begin(isRunning: false, foreground: "editor"))
+        XCTAssertNotNil(s.begin(foreground: "editor"))
+        XCTAssertNil(s.begin(foreground: "editor"))
     }
     func testDismissDoesNotCancelOpening() {
         var s = LaunchSession()
-        let id = s.begin(isRunning: false, foreground: "editor")!
+        let id = s.begin(foreground: "editor")!
         s.dismiss()
         XCTAssertEqual(s.requestID, id)
         XCTAssertFalse(s.stageVisible)
@@ -19,28 +19,27 @@ final class CompanionTests: XCTestCase {
     }
     func testExpiredRequestIgnoresOldFinish() {
         var s = LaunchSession()
-        let old = s.begin(isRunning: false, foreground: "editor")!
+        let old = s.begin(foreground: "editor")!
         s.expireRequest()
-        let fresh = s.begin(isRunning: true, foreground: "editor")!
+        let fresh = s.begin(foreground: "editor")!
         s.finish(id: old, succeeded: true)
         XCTAssertEqual(s.requestID, fresh)
         XCTAssertEqual(s.status, .opening)
     }
     func testAppSwitchRevokesDelayedLaunchActivation() {
         var s = LaunchSession()
-        _ = s.begin(isRunning: false, foreground: "editor")
+        _ = s.begin(foreground: "editor")
         s.observeActivation("browser", companion: "companion", target: "target")
         XCTAssertFalse(s.canActivate(foreground: "editor", companion: "companion", target: "target"))
     }
     func testUnchangedForegroundAllowsNativeCompletionActivation() {
         var s = LaunchSession()
-        _ = s.begin(isRunning: false, foreground: "editor")
+        _ = s.begin(foreground: "editor")
         XCTAssertTrue(s.canActivate(foreground: "editor", companion: "companion", target: "target"))
     }
     func testWatchdogRemovesStageAndFailureEndsIt() {
         var s = LaunchSession()
-        let id = s.begin(isRunning: true, foreground: "editor")!
-        XCTAssertTrue(s.compact)
+        let id = s.begin(foreground: "editor")!
         s.expireStage()
         XCTAssertFalse(s.stageVisible)
         s.finish(id: id, succeeded: false)

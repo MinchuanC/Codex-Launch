@@ -127,7 +127,13 @@ Load local HTML through `loadFileURL` with read access restricted to bundled web
 3. Interactive companion: tab, deck, return cue, quiet mode, native controls and lifecycle wiring.
 4. Delivery: locally bundled app, native smoke matrix, recorded opening, performance measurements, documented limits and uninstall.
 
-Do not add multiple skins, an animation marketplace, global shortcuts, chat activity sensing, fake progress, timers, notification scraping, telemetry, launch agents, or login-item installation. The initial goal is one outstanding coherent experience. Future real task reactions require a separately designed, documented event source and explicit scope.
+Do not add multiple skins, an animation marketplace, global shortcuts, chat activity sensing, fake progress, notification scraping, or telemetry. A later user request approved an optional LaunchAgent that watches only the selected app's process-start event; it does not inspect Codex's internal section. The initial goal remains one outstanding coherent experience. Future real task reactions require a separately designed, documented event source and explicit scope.
+
+## Follow-up amendment — automatic launch and extended ritual
+
+Date: 2026-10-25. The user asked for the opening whenever Codex is opened and for a longer, more dramatic “winding up a god” sequence. On this Mac Codex runs inside `ChatGPT.app`, so AppKit can observe the ChatGPT process starting, but it cannot detect switching into the Codex section after that process is already open. The optional login monitor starts Aperture quietly and listens only to the selected app's public workspace launch notification. It can be removed with the paired script. It does not alter ChatGPT/Codex.
+
+The full, replayable opening lasts 6.4 seconds: a slow reveal of the six-part assembly, a torqueing rotor and traced core, the vane split and concentrated slit, then a controlled return to the settled mark. The native watchdog expires at 7.5 seconds. Existing app launches and replays use this full timing; reduced-motion and quiet behavior remain intact. Avoid flicker and fake readiness cues.
 
 ## Research and provenance
 

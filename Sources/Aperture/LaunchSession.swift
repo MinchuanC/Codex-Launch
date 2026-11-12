@@ -5,17 +5,15 @@ struct LaunchSession {
     private(set) var requestID: UUID?
     private(set) var stageVisible = false
     private(set) var status: Status = .idle
-    private(set) var compact = false
     private var initialForeground: String?
     private var focusAllowed = false
 
-    mutating func begin(isRunning: Bool, foreground: String?) -> UUID? {
+    mutating func begin(foreground: String?) -> UUID? {
         guard requestID == nil else { return nil }
         let id = UUID()
         requestID = id
         stageVisible = true
         status = .opening
-        compact = isRunning
         initialForeground = foreground
         focusAllowed = true
         return id

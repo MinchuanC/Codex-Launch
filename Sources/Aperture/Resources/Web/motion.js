@@ -17,34 +17,45 @@
     const tl = gsap.timeline({paused:true});
     if (reduced(options) || options.quiet) {
       tl.set(vanes, {clearProps:'transform,opacity,visibility'},0);
-      tl.set(['.assembly-field','.stage-header','.stage-footer','.cut-rule'], {clearProps:'all'},0);
+      tl.set(['.program-field','.assembly-field','.stage-header','.stage-footer','.cut-rule'], {clearProps:'all'},0);
       tl.set('#startup', {autoAlpha:1},0);
       tl.addLabel('resolve',0).addLabel('open',0).addLabel('close',0).addLabel('handoff',0);
       if (!options.quiet) tl.fromTo('#startup',{opacity:0},{opacity:1,duration:0.12,ease:'none'});
       return tl;
     }
-    const compact = !!options.compact;
     tl.addLabel('resolve',0)
-      .fromTo('#startup',{autoAlpha:0},{autoAlpha:1,duration:0.18,ease:'power2.out'},0)
-      .fromTo('.stage-header',{y:6,autoAlpha:0},{y:0,autoAlpha:1,duration:0.3,ease:'power3.out'},0.12)
-      .fromTo('.assembly-field',{scale:0.86,autoAlpha:0},{scale:1,autoAlpha:1,duration:0.58,ease:'power3.out'},0.14)
-      .fromTo(vanes,{x:72,rotation:-14,autoAlpha:0},{x:0,rotation:0,autoAlpha:1,duration:0.45,stagger:0.024,transformOrigin:'0% 50%',ease:'power3.out'},0.18)
-      .addLabel('open',0.65)
-      .to(vanes,{x:32,rotation:32,duration:0.4,transformOrigin:'0% 50%',ease:'power2.inOut'},'open')
-      .fromTo('.core-cut',{scaleY:0.15,scaleX:1},{scaleY:1.6,scaleX:6,duration:0.42,transformOrigin:'50% 50%',ease:'power2.inOut'},'open')
-      .fromTo('.cut-rule',{scaleX:0,autoAlpha:0},{scaleX:1,autoAlpha:1,duration:0.5,ease:'power3.inOut'},0.68)
-      .fromTo('.label-bottom',{autoAlpha:0},{autoAlpha:1,duration:0.2},0.9)
-      .fromTo('.stage-footer',{autoAlpha:0},{autoAlpha:1,duration:0.2},0.28)
-      .addLabel('close',1.18)
-      .to(vanes,{x:0,rotation:0,duration:0.36,transformOrigin:'0% 50%',ease:'power2.inOut'},'close')
-      .to('.core-cut',{scaleX:1,scaleY:1,duration:0.34,ease:'power2.inOut'},'close')
-      .addLabel('handoff',1.56)
-      .to('#startup',{autoAlpha:0,duration:0.24,ease:'power2.out'},'handoff');
-    if (compact) {
-      tl.getChildren(false,true,true).forEach(child => { child.startTime(child.startTime()*0.25); child.duration(child.duration()*0.25); });
-      Object.keys(tl.labels).forEach(label => {tl.labels[label] *= 0.25;});
-    }
+      .fromTo('#startup',{autoAlpha:0},{autoAlpha:1,duration:0.42,ease:'power2.out'},0)
+      .fromTo('.program-field',{y:14,autoAlpha:0},{y:0,autoAlpha:0.6,duration:1.1,ease:'power2.out'},0.8)
+      .fromTo('.program-field span',{x:-18,autoAlpha:0},{x:0,autoAlpha:1,duration:0.7,stagger:0.14,ease:'power3.out'},0.9)
+      .to('.program-field',{autoAlpha:0,y:-12,duration:0.7,ease:'power2.inOut'},4.2)
+      .fromTo('.program-field',{y:14,autoAlpha:0},{y:0,autoAlpha:0.5,duration:1,ease:'power2.out'},8.2)
+      .to('.program-field',{autoAlpha:0,y:-12,duration:0.7,ease:'power2.inOut'},11.2)
+      .fromTo('.stage-header',{y:8,autoAlpha:0},{y:0,autoAlpha:1,duration:0.55,ease:'power3.out'},0.28)
+      .fromTo('.assembly-field',{autoAlpha:0},{autoAlpha:1,duration:1.1,ease:'power3.out'},0.15)
+      .fromTo(vanes,{x:118,rotation:-26,autoAlpha:0},{x:0,rotation:0,autoAlpha:1,duration:0.82,stagger:0.055,transformOrigin:'0% 50%',ease:'power3.out'},0.62)
+      .fromTo('.charge-ring',{autoAlpha:0,scale:0.62,rotation:-150,svgOrigin:'0 0'},{autoAlpha:0.78,scale:1.08,rotation:210,duration:3.8,svgOrigin:'0 0',ease:'power2.inOut'},0.8)
+      .fromTo('.core-outline',{autoAlpha:0,scale:0.82,svgOrigin:'0 0'},{autoAlpha:1,scale:1,duration:0.8,svgOrigin:'0 0',ease:'power2.out'},1.15)
+      .fromTo('.stage-footer',{autoAlpha:0,y:5},{autoAlpha:1,y:0,duration:0.35,ease:'power2.out'},1.2)
+      .addLabel('open',2.05)
+      .to(vanes,{x:34,rotation:34,scale:1.045,duration:1.12,stagger:0.045,transformOrigin:'0% 50%',ease:'power2.inOut'},'open')
+      .fromTo('.core-cut',{scaleY:0.08,scaleX:0.7},{scaleY:2.25,scaleX:2.5,duration:1.15,transformOrigin:'50% 50%',ease:'power2.inOut'},'open+=0.12')
+      .fromTo('.cut-rule',{scaleX:0,autoAlpha:0},{scaleX:1,autoAlpha:1,duration:0.9,ease:'power3.inOut'},'open+=0.24')
+      .fromTo('.label-bottom',{autoAlpha:0},{autoAlpha:1,duration:0.35,ease:'power2.out'},'open+=0.8')
+      .addLabel('settle',12.5)
+      .to(vanes,{x:0,rotation:0,scale:1,duration:0.88,stagger:0.035,transformOrigin:'0% 50%',ease:'power2.inOut'},'settle')
+      .to('.core-cut',{scaleX:1,scaleY:1,duration:0.8,ease:'power2.inOut'},'settle+=0.12')
+      .to('.charge-ring',{autoAlpha:0,scale:1.35,duration:0.55,svgOrigin:'0 0',ease:'power2.in'},'settle+=0.18')
+      .to(['.stage-header','.cut-rule'],{autoAlpha:0,duration:0.5,ease:'power2.in'},13.2)
+      .addLabel('handoff',15.72)
+      .to('#startup',{autoAlpha:0,duration:0.28,ease:'power2.inOut'},'handoff');
     return tl;
+  }
+  function startScene() {
+    if(scene || current?.surface!=='startup' || !startup || startup.progress()>=1 || reduced(current) || current.quiet || document.visibilityState!=='visible') return;
+    scene=window.ApertureScene?.create($('.assembly-field'),startup.time(),{
+      frame:time=>{ startup?.pause(); startup?.time(time); },
+      failed:()=>startup?.play()
+    }) ?? null;
   }
   function present(options) {
     const previous = current;
@@ -59,11 +70,7 @@
     context = gsap.context(() => {
       if (options.surface==='startup') {
         startup = createStartupTimeline(options);
-        if(!reduced(options) && !options.quiet && document.visibilityState==='visible') {
-          scene=window.ApertureScene?.create($('.assembly-field')) ?? null;
-          scene?.timeline(startup);
-          startup.eventCallback('onUpdate',()=>scene?.render());
-        }
+        startScene();
         startup.eventCallback('onComplete',() => {
           if(token!==generation) return;
           scene?.dispose(); scene=null;
@@ -119,6 +126,7 @@
   });
   document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState==='hidden') { scene?.dispose(); scene=null; }
+    else startScene();
   });
   window.Aperture={present,dismiss,dispose:dismiss,setLaunchStatus,createStartupTimeline};
   send('ready');

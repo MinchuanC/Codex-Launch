@@ -31,12 +31,36 @@ final class CompanionPanel: NSPanel {
     private var pendingActivation: NSRunningApplication?
     private var requestTarget: TargetApp?
     private var screen: NSScreen?
+    private struct ScreenLayout: Equatable {
+        let id: String
+        let frame: NSRect
+        let visibleFrame: NSRect
+        let scale: CGFloat
+    }
+    private var screenLayout: [ScreenLayout] = []
+    private var currentScreenLayout: [ScreenLayout] {
+        NSScreen.screens.map { ScreenLayout(id: String(describing: $0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")]), frame: $0.frame, visibleFrame: $0.visibleFrame, scale: $0.backingScaleFactor) }.sorted { $0.id < $1.id }
+    }
     private var observers: [NSObjectProtocol] = []
     private var renderFailure = false
     private var preview = false
     private var motionReduced: Bool { NSWorkspace.shared.accessibilityDisplayShouldReduceMotion }
     private var ownID: String { Bundle.main.bundleIdentifier ?? "local.aperture.companion" }
     private var foreground: String? { NSWorkspace.shared.frontmostApplication?.bundleIdentifier }
+
+    private func trace(_ event: String) {
+        guard let path = ProcessInfo.processInfo.environment["APERTURE_TRACE_PATH"] else { return }
+        let prefix = "\(Date().timeIntervalSince1970) \(event) surface=\(surface) foreground=\(foreground ?? "nil")"
+        func write(_ detail: String) {
+            let line = Data((prefix + " " + detail + "\n").utf8)
+            if !FileManager.default.fileExists(atPath: path) { FileManager.default.createFile(atPath: path, contents: nil) }
+            if let handle = FileHandle(forWritingAtPath: path) { handle.seekToEndOfFile(); handle.write(line); try? handle.close() }
+        }
+        write("")
+        webView?.evaluateJavaScript("JSON.stringify({video:document.querySelector('video')?.currentTime, visibility:document.visibilityState, timeline:gsap.globalTimeline.getChildren(false,false,true).find(t=>'handoff' in t.labels)?.time()})") { value, _ in
+            write(value as? String ?? "no web state")
+        }
+    }
 
     override init() {
         super.init()
@@ -64,6 +88,10 @@ final class CompanionPanel: NSPanel {
                 self.hideAll()
             }
         })
+        observers.append(center.addObserver(forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main) { [weak self] note in
+            let appID = (note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.bundleIdentifier
+            MainActor.assumeIsolated { self?.observeTargetLaunch(appID) }
+        })
         observers.append(center.addObserver(forName: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.render() }
         })
@@ -83,8 +111,7 @@ final class CompanionPanel: NSPanel {
         hideAll()
         self.target = target
         requestTarget = target
-        let running = !NSRunningApplication.runningApplications(withBundleIdentifier: target.bundleIdentifier).isEmpty
-        guard let id = session.begin(isRunning: running, foreground: foreground) else { return }
+        guard let id = session.begin(foreground: foreground) else { return }
         preview = false
         previousApp = NSWorkspace.shared.frontmostApplication
         visibility.hidden = false
@@ -124,6 +151,17 @@ final class CompanionPanel: NSPanel {
         }
     }
 
+    private func observeTargetLaunch(_ appID: String?) {
+        guard appID == target?.bundleIdentifier, !visibility.quiet, !visibility.hidden,
+              session.requestID == nil, !session.stageVisible,
+              let id = session.begin(foreground: foreground) else { return }
+        preview = false
+        visibility.targetActive = true
+        session.finish(id: id, succeeded: true)
+        present("startup")
+        armStageWatchdog()
+    }
+
     func replay() {
         hideAll()
         preview = true
@@ -132,6 +170,7 @@ final class CompanionPanel: NSPanel {
         armStageWatchdog()
     }
     func dismissStartup() {
+        trace("dismissStartup")
         let app = pendingActivation
         let shouldActivate = target.map { visibility.sessionActive && session.canActivate(foreground: foreground, companion: ownID, target: $0.bundleIdentifier) } ?? false
         session.dismiss()
@@ -165,6 +204,7 @@ final class CompanionPanel: NSPanel {
         showDeck()
     }
     func hideAll() {
+        trace("hideAll")
         session.dismiss()
         session.revokeFocus()
         pendingActivation = nil
@@ -177,11 +217,16 @@ final class CompanionPanel: NSPanel {
         if ready { webView?.evaluateJavaScript("window.Aperture?.dispose()", completionHandler: nil) }
     }
     func screensChanged() {
+        trace("screensChanged")
+        let updated = currentScreenLayout
+        guard updated != screenLayout else { return }
+        screenLayout = updated
         hideAll()
         screen = nil
         refreshTab()
     }
     private func activated(_ appID: String?) {
+        trace("activation: \(appID ?? "nil")")
         session.observeActivation(appID, companion: ownID, target: target?.bundleIdentifier ?? "")
         visibility.targetActive = appID == target?.bundleIdentifier && target != nil
         if surface == "startup", panel?.isVisible == true {
@@ -200,15 +245,17 @@ final class CompanionPanel: NSPanel {
     private func armStageWatchdog() {
         stageTimer?.invalidate()
         let token = presentationID
-        stageTimer = Timer.scheduledTimer(withTimeInterval: 2.5, repeats: false) { [weak self] _ in
+        stageTimer = Timer.scheduledTimer(withTimeInterval: 17.5, repeats: false) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let self, self.presentationID == token else { return }
+                self.trace("watchdog")
                 self.session.expireStage()
                 self.dismissStartup()
             }
         }
     }
     private func present(_ surface: String) {
+        trace("present: \(surface)")
         if self.surface == "startup" && surface != "startup" {
             session.dismiss()
             session.revokeFocus()
@@ -221,6 +268,7 @@ final class CompanionPanel: NSPanel {
             screen = NSScreen.screens.first(where: { NSMouseInRect(NSEvent.mouseLocation, $0.frame, false) }) ?? NSScreen.main
         }
         guard let screen else { return }
+        screenLayout = currentScreenLayout
         let frame = surface == "startup" ? Placement.stage(in: screen.frame) : surface == "deck" ? Placement.deck(in: screen.visibleFrame) : Placement.tab(in: screen.visibleFrame)
         guard let frame else { hideAll(); return }
         ensurePanel()
@@ -245,6 +293,7 @@ final class CompanionPanel: NSPanel {
         p.collectionBehavior = [.moveToActiveSpace, .ignoresCycle]
         panel = p
         let config = WKWebViewConfiguration()
+        config.mediaTypesRequiringUserActionForPlayback = []
         config.websiteDataStore = .nonPersistent()
         config.userContentController.add(self, name: "aperture")
         let web = WKWebView(frame: .zero, configuration: config)
@@ -268,7 +317,7 @@ final class CompanionPanel: NSPanel {
     }
     private func render() {
         guard ready, !renderFailure else { return }
-        let options: [String: Any] = ["surface": surface, "reducedMotion": motionReduced, "quiet": visibility.quiet, "compact": !preview && session.compact, "presentationToken": presentationID.uuidString]
+        let options: [String: Any] = ["surface": surface, "reducedMotion": motionReduced, "quiet": visibility.quiet, "presentationToken": presentationID.uuidString]
         guard let data = try? JSONSerialization.data(withJSONObject: options), let json = String(data: data, encoding: .utf8) else { return }
         webView?.evaluateJavaScript("window.Aperture.present(\(json))", completionHandler: nil)
         setStatus()
@@ -295,6 +344,7 @@ final class CompanionPanel: NSPanel {
             return
         }
         guard panel?.isVisible == true else { return }
+        trace("bridge: \(action)")
         switch action {
         case "skip", "finished": if surface == "startup" { dismissStartup() }
         case "openDeck": showDeck()

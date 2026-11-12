@@ -10,28 +10,31 @@ xcrun swiftc -swift-version 6 Sources/Aperture/LaunchSession.swift Sources/Apert
 cp packaging/Info.plist "$harness/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c 'Set :CFBundleExecutable NativeHarness' "$harness/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c 'Set :CFBundleIdentifier local.aperture.harness' "$harness/Contents/Info.plist"
+rm -rf "$harness/Contents/Resources/Web"
 ditto dist/Aperture.app/Contents/Resources/Web "$harness/Contents/Resources/Web"
 codesign --force --sign - "$harness"
 rm -f dist/native-harness.json dist/native-harness-error.txt
-open -n "$harness"
+open -n "$harness" --args "$@"
 python3 - <<'PY'
 import time,json
 from pathlib import Path
-for _ in range(150):
+for _ in range(300):
     report=Path('dist/native-harness.json')
     error=Path('dist/native-harness-error.txt')
     if error.exists(): raise SystemExit(error.read_text())
     if report.exists():
         r=json.loads(report.read_text());print(json.dumps(r,indent=2))
+        assert r['filmPlaybackVerified'], 'bundled film did not decode and play in native WebKit'
         assert r['stageDismissed'], 'native stage did not dismiss'
-        assert r['startupRenderer'] in ('webgl','svg'), 'startup renderer did not report a scene or explicit fallback'
-        assert r['sceneDisposed'], 'startup left a canvas or active animation after dismissal'
+        assert r['startupRenderer']=='film', 'native startup did not show the playing film'
+        assert r['nativeSkipBridge'], 'Escape did not immediately dismiss and release the replayed film'
+        assert r['sceneDisposed'], 'startup left media playback or active animation after dismissal'
         assert r['deckVisible'] and r['nativeHideBridge'], 'native controls did not route correctly'
         assert r['deckRendered'], 'native deck rendered blank'
         assert r['deckHitTest'], 'native deck is not the receiving window at its own center'
         metrics=json.loads(r['metrics'])
         assert metrics['frames']>10, 'native animation did not receive live frames'
-        assert metrics['sampleDuration']>=6200, 'frame capture did not cover the complete opening'
+        assert metrics['sampleDuration']>=15800, 'frame capture did not cover the complete opening'
         break
     time.sleep(.1)
 else: raise SystemExit('native harness timed out')

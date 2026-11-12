@@ -3,6 +3,17 @@ import XCTest
 @testable import Aperture
 
 final class NativePanelTests: XCTestCase {
+    @MainActor func testUnchangedScreenNotificationPreservesOpening() throws {
+        _ = NSApplication.shared
+        let c = CompanionController()
+        defer { c.dispose() }
+        c.replay()
+        let panel = try XCTUnwrap(c.panel)
+        XCTAssertTrue(panel.isVisible)
+        NotificationCenter.default.post(name: NSApplication.didChangeScreenParametersNotification, object: nil)
+        XCTAssertTrue(panel.isVisible, "unchanged display parameters must not cut off the movie")
+    }
+
     @MainActor func testNativePanelIsBoundedAndRemovedOnDismissal() async throws {
         _ = NSApplication.shared
         let before = NSWorkspace.shared.frontmostApplication?.processIdentifier
@@ -26,7 +37,7 @@ final class NativePanelTests: XCTestCase {
         defer { c.dispose() }
         c.replay()
         XCTAssertTrue(c.panel?.isVisible == true)
-        try await Task.sleep(for: .milliseconds(2800))
+        try await Task.sleep(for: .milliseconds(17800))
         XCTAssertFalse(c.panel?.isVisible == true)
     }
     @MainActor func testHidingOrReplacingStageCancelsPendingFocusIntent() async throws {

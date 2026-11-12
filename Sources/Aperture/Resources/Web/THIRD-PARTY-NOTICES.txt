@@ -7,17 +7,37 @@ The original copyright and license header is preserved in gsap.min.js.
 
 Three.js r186 (npm three@0.186.0) — MIT
 Copyright © 2010-2026 three.js authors
-Full license: THREE-LICENSE.txt (distributed alongside the runtime).
+Full license: THREE-LICENSE.txt.
 Upstream release: https://github.com/mrdoob/three.js/tree/r186
-Vendored: Three.js WebGL runtime, RoomEnvironment, RectAreaLightUniformsLib
-and its RectAreaLightTexturesLib dependency, bundled in three-bundle.min.js.
+Used by the offline film authoring harness; the launch sequence uses native video playback.
 Build: bash scripts/build-three.sh (esbuild@0.25.0; Safari 17 classic IIFE).
-Integrity: packaging/three.sha256; bundled assets are never fetched at runtime.
+Integrity: packaging/three.sha256.
 
-scene.js adapts the physical material / ACES setup and area-light setup from:
-https://github.com/mrdoob/three.js/blob/r186/examples/webgl_materials_physical_clearcoat.html
-https://github.com/mrdoob/three.js/blob/r186/examples/webgl_lights_rectarealight.html
-RoomEnvironment is actual upstream code, including its model-viewer provenance:
-https://github.com/mrdoob/three.js/blob/r186/examples/jsm/environments/RoomEnvironment.js
-No upstream demo textures, HDR photographs, fonts or models are included.
-The iris geometry and finite GSAP/camera choreography are original to Aperture.
+Raymarched Black Hole — MIT
+Copyright (c) 2026 Maksim Sterkis
+Full license: BLACK-HOLE-LICENSE.txt.
+Source: https://github.com/maksim-sterkis/Raymarched-Black-Hole
+Pinned commit: 945db088856eae5547e29529050f19aba4f126ae
+Actual upstream vertex, raymarching and postprocessing shader code is adapted
+in packaging/black-hole-shaders.js. Changes: defined smoothstep edge ordering,
+muted warm color grade, original finite camera path and effect parameters.
+Retained in the repository as an earlier 6.4-second authoring study.
+The current machine cinematic does not use this shader or its rendered texture.
+This is an artistic visualization, not a validated astrophysics simulation.
+No endorsement by the upstream author is implied.
+
+Gateway Lunar Space Station 3D model — NASA
+Credit: NASA/JSC/Gateway Program Office, Alberto G. Bertolin,
+and Bradley W. Reynolds.
+Source: https://science.nasa.gov/3d-resources/gateway-lunar-space-station/
+Model: https://assets.science.nasa.gov/content/dam/science/cds/3d/resources/model/gateway/Gateway%20Core.glb
+Source SHA-256: 2817a541047a30554dc8ecf489f82235c034ad034cfa65d75546330b1dae2e05
+Usage guidelines: https://www.nasa.gov/nasa-brand-center/images-and-media/
+NASA polygon data and texture maps used under NASA's published media guidance.
+The model is used in a fictional authored cinematic with original staging,
+lighting, motion, and reactor components. No NASA endorsement is implied.
+The model and its textures are authoring assets; the app distributes the render.
+
+Chamber backdrop — generated locally using OpenAI image generation.
+Used as a distant matte painting behind animated 3D geometry.
+Prompt and authoring path: packaging/ASSET-SOURCES.md.

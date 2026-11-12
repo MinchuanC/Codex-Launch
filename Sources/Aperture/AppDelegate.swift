@@ -28,6 +28,7 @@ import UniformTypeIdentifiers
         }
         if CommandLine.arguments.contains("--preview") { controller.replay() }
         else if CommandLine.arguments.contains("--controls") { controller.showDeck() }
+        else if CommandLine.arguments.contains("--monitor") { return }
         else { openApp() }
     }
     func menuWillOpen(_ menu: NSMenu) {
